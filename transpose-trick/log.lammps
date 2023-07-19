@@ -1,0 +1,113 @@
+LAMMPS (15 Sep 2022)
+# Initialize simulation
+
+variable nsteps index 100000
+variable nrep equal 4
+variable a equal 3.1803
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.1803
+Lattice spacing in x,y,z = 3.1803 3.1803 3.1803
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      2 box
+Created orthogonal box = (0 0 0) to (12.7212 12.7212 12.7212)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (12.7212 12.7212 12.7212)
+  create_atoms CPU = 0.000 seconds
+mass 1 183.84
+mass 2 9.012182
+
+set     group all type/fraction 2 0.01 359015 # Change 1% of W to Be
+Setting atom values ...
+  3 settings made for type/fraction
+group   tungsten         type 1
+125 atoms in group tungsten
+group   beryllium        type 2
+3 atoms in group beryllium
+
+mass 1 183.84
+mass 2 9.012182
+
+# Use SNAP potential:
+#include WBe_pot.mod
+# Use ACE potential:
+pair_style pace
+ACE version: 2022.6.27
+Recursive evaluator is used
+pair_coeff * * WBe_pot.yace W Be
+Loading WBe_pot.yace
+Total number of basis functions
+	W: 12 (r=1) 66 (r>1)
+	Be: 12 (r=1) 66 (r>1)
+Mapping LAMMPS atom type #1(W) -> ACE species type #0
+Mapping LAMMPS atom type #2(Be) -> ACE species type #1
+
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
+thermo          100
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 100.0 4928459 loop geom
+dump 1 all xyz 100 dump.xyz
+fix 1 all nve
+run             ${nsteps}
+run             100000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair pace, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.956 | 4.956 | 4.956 Mbytes
+   Step          Temp          E_pair        c_energy        TotEng         Press         v_press    
+         0   100            13.402551      13.402551      13.415376      7190783.9     -7190783.9    
+       100   3369.5897      12.983163      12.983163      13.415314      6793096.1     -6793096.1    
+       200   10441.995      11.855241      11.855241      13.19443       6674414.7     -6674414.7    
+       300   45015.693      10.821963      10.821963      16.595239      6029454       -6029454      
+       400   182002.96      9.5008111      9.5008111      32.842745      6385349.7     -6385349.7    
+       500   426810.7       15.068591      15.068591      69.807192      7629093.7     -7629093.7    
+       600   1004679        20.753134      20.753134      149.60352      10789666      -10789666     
+       700   1706194.2      25.131205      25.131205      243.95112      18136884      -18136884     
+       800   2122269.7      24.929309      24.929309      297.11104      21180100      -21180100     
+       900   2658100.6      31.697047      31.697047      372.59925      26369468      -26369468     
+      1000   3115150.4      32.649936      32.649936      432.16892      28810782      -28810782     
+      1100   4351463.8      32.282528      32.282528      590.35906      40836038      -40836038     
+      1200   5381420        34.857684      34.857684      725.02641      49938796      -49938796     
+      1300   5839302.1      34

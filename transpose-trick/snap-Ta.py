@@ -24,9 +24,9 @@ from mpi4py import MPI
 from fitsnap3lib.fitsnap import FitSnap
 import numpy as np
 from scipy.linalg import lstsq
-from sys import float_info as fi
 from sklearn.linear_model import Ridge
 from numpy import linalg as LA
+import sys
 
 def least_squares(c, d):
     """
@@ -246,11 +246,15 @@ if rank == 0:
     
     print(np.shape(c_all))
     n = np.shape(c_all)[0]
-    reg = np.identity(n)*1e-12
+    reg = np.identity(n)*1e-6
     mat = c_all + reg
-    cond = LA.cond(mat)/1e9
 
-    print(cond)
+    inveps = 1./(sys.float_info.epsilon)
+    cond = LA.cond(mat)
+
+    ratio = cond / inveps
+
+    print(ratio)
 
     # Perform least squares fit.
     coeffs = least_squares(c_all,d_all)

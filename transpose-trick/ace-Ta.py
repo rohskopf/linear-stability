@@ -122,8 +122,8 @@ settings = \
     "numTypes": 1,
     "ranks": "1 2 3",
     "lmax":  "1 2 4",
-    "nmax": "8 3 1",
-    "nmaxbase": 8,
+    "nmax": "5 3 1",
+    "nmaxbase": 5,
     "rcutfac": 4.604694451,
     "lambda": 3.059235105,
     "type": "Ta",
@@ -154,7 +154,7 @@ settings = \
     },
 "PATH":
     {
-    "dataPath": "../../Ta_Linear_JCP2014/JSON"
+    "dataPath": "/Users/adrohsk/FitSNAP/examples/Ta_Linear_JCP2014/JSON"
     },
 "OUTFILE":
     {
@@ -249,7 +249,7 @@ from numpy import linalg as LA
 
 print(np.shape(c_all))
 n = np.shape(c_all)[0]
-reg = np.identity(n)*1e-6
+reg = np.identity(n)*1e-4
 mat = c_all + reg
 
 inveps = 1./(sys.float_info.epsilon)
